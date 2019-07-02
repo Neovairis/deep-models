@@ -4,7 +4,7 @@ import tensorflow as tf
 def unpickle(file):
   import pickle
   fo = open(file, 'rb')
-  dict = pickle.load(fo, encoding='bytes')
+  dict = pickle.load(fo, encoding='latin1')
   fo.close()
   if 'data' in dict:
     dict['data'] = dict['data'].reshape((-1, 3, 32, 32)).swapaxes(1, 3).swapaxes(1, 2).reshape(-1, 32*32*3) / 256.
@@ -78,7 +78,7 @@ def avg_pool(input, s):
 
 def run_model(data, image_dim, label_count, depth):
   weight_decay = 1e-4
-  layers = (depth - 4) / 3
+  layers = int((depth - 4) / 3)
   graph = tf.Graph()
   with graph.as_default():
     xs = tf.placeholder("float", shape=[None, image_dim])
@@ -143,6 +143,7 @@ def run():
   image_size = 32
   image_dim = image_size * image_size * 3
   meta = unpickle(data_dir + '/batches.meta')
+  print(meta)
   label_names = meta['label_names']
   label_count = len(label_names)
 
