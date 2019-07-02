@@ -4,7 +4,7 @@ import tensorflow as tf
 def unpickle(file):
   import pickle
   fo = open(file, 'rb')
-  dict = pickle.load(fo)
+  dict = pickle.load(fo, encoding='bytes')
   fo.close()
   if 'data' in dict:
     dict['data'] = dict['data'].reshape((-1, 3, 32, 32)).swapaxes(1, 3).swapaxes(1, 2).reshape(-1, 32*32*3) / 256.
@@ -24,7 +24,7 @@ def load_data(files, data_dir, label_count):
     data_n, labels_n = load_data_one(data_dir + '/' + f)
     data = np.append(data, data_n, axis=0)
     labels = np.append(labels, labels_n, axis=0)
-  labels = np.array([ [ float(i == label) for i in range(label_count) ] for label in labels ])
+  labels = np.array([[float(i == label) for i in range(label_count)] for label in labels ])
   return data, labels
 
 def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_size=200):                              
@@ -51,7 +51,7 @@ def bias_variable(shape):
   return tf.Variable(initial)
 
 def conv2d(input, in_features, out_features, kernel_size, with_bias=False):
-  W = weight_variable([ kernel_size, kernel_size, in_features, out_features ])
+  W = weight_variable([kernel_size, kernel_size, in_features, out_features])
   conv = tf.nn.conv2d(input, W, [ 1, 1, 1, 1 ], padding='SAME')
   if with_bias:
     return conv + bias_variable([ out_features ])
@@ -139,7 +139,7 @@ def run_model(data, image_dim, label_count, depth):
       print(epoch, batch_res[1:], test_results)
 
 def run():
-  data_dir = 'data'
+  data_dir = '../Q2_SVM'
   image_size = 32
   image_dim = image_size * image_size * 3
   meta = unpickle(data_dir + '/batches.meta')
