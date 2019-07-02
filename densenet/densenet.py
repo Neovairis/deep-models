@@ -2,9 +2,9 @@ import numpy as np
 import tensorflow as tf
 
 def unpickle(file):
-  import cPickle
+  import pickle
   fo = open(file, 'rb')
-  dict = cPickle.load(fo)
+  dict = pickle.load(fo)
   fo.close()
   if 'data' in dict:
     dict['data'] = dict['data'].reshape((-1, 3, 32, 32)).swapaxes(1, 3).swapaxes(1, 2).reshape(-1, 32*32*3) / 256.
@@ -15,7 +15,7 @@ def load_data_one(f):
   batch = unpickle(f)
   data = batch['data']
   labels = batch['labels']
-  print "Loading %s: %d" % (f, len(data))
+  print("Loading %s: %d" % (f, len(data)))
   return data, labels
 
 def load_data(files, data_dir, label_count):
@@ -24,7 +24,7 @@ def load_data(files, data_dir, label_count):
     data_n, labels_n = load_data_one(data_dir + '/' + f)
     data = np.append(data, data_n, axis=0)
     labels = np.append(labels, labels_n, axis=0)
-  labels = np.array([ [ float(i == label) for i in xrange(label_count) ] for label in labels ])
+  labels = np.array([ [ float(i == label) for i in range(label_count) ] for label in labels ])
   return data, labels
 
 def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_size=200):                              
@@ -32,7 +32,7 @@ def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_s
   batch_tensors = [ (placeholder, feed_dict[ placeholder ]) for placeholder in batch_placeholders ]                    
   total_size = len(batch_tensors[0][1])                                                                                
   batch_count = (total_size + batch_size - 1) / batch_size                                                             
-  for batch_idx in xrange(batch_count):                                                                                
+  for batch_idx in range(batch_count):
     current_batch_size = None                                                                                          
     for (placeholder, tensor) in batch_tensors:                                                                        
       batch_tensor = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]                                         
@@ -67,7 +67,7 @@ def batch_activ_conv(current, in_features, out_features, kernel_size, is_trainin
 def block(input, layers, in_features, growth, is_training, keep_prob):
   current = input
   features = in_features
-  for idx in xrange(layers):
+  for idx in range(layers):
     tmp = batch_activ_conv(current, features, growth, 3, is_training, keep_prob)
     current = tf.concat((current, tmp), axis=3)
     features += growth
@@ -123,20 +123,20 @@ def run_model(data, image_dim, label_count, depth):
     batch_count = len(train_data) / batch_size
     batches_data = np.split(train_data[:batch_count * batch_size], batch_count)
     batches_labels = np.split(train_labels[:batch_count * batch_size], batch_count)
-    print "Batch per epoch: ", batch_count
-    for epoch in xrange(1, 1+300):
+    print("Batch per epoch: ", batch_count)
+    for epoch in range(1, 1+300):
       if epoch == 150: learning_rate = 0.01
       if epoch == 225: learning_rate = 0.001
-      for batch_idx in xrange(batch_count):
+      for batch_idx in range(batch_count):
         xs_, ys_ = batches_data[batch_idx], batches_labels[batch_idx]
         batch_res = session.run([ train_step, cross_entropy, accuracy ],
           feed_dict = { xs: xs_, ys: ys_, lr: learning_rate, is_training: True, keep_prob: 0.8 })
-        if batch_idx % 100 == 0: print epoch, batch_idx, batch_res[1:]
+        if batch_idx % 100 == 0: print(epoch, batch_idx, batch_res[1:])
 
       save_path = saver.save(session, 'densenet_%d.ckpt' % epoch)
       test_results = run_in_batch_avg(session, [ cross_entropy, accuracy ], [ xs, ys ],
           feed_dict = { xs: data['test_data'], ys: data['test_labels'], is_training: False, keep_prob: 1. })
-      print epoch, batch_res[1:], test_results
+      print(epoch, batch_res[1:], test_results)
 
 def run():
   data_dir = 'data'
@@ -146,13 +146,13 @@ def run():
   label_names = meta['label_names']
   label_count = len(label_names)
 
-  train_files = [ 'data_batch_%d' % d for d in xrange(1, 6) ]
+  train_files = [ 'data_batch_%d' % d for d in range(1, 6) ]
   train_data, train_labels = load_data(train_files, data_dir, label_count)
   pi = np.random.permutation(len(train_data))
   train_data, train_labels = train_data[pi], train_labels[pi]
   test_data, test_labels = load_data([ 'test_batch' ], data_dir, label_count)
-  print "Train:", np.shape(train_data), np.shape(train_labels)
-  print "Test:", np.shape(test_data), np.shape(test_labels)
+  print("Train:", np.shape(train_data), np.shape(train_labels))
+  print("Test:", np.shape(test_data), np.shape(test_labels))
   data = { 'train_data': train_data,
       'train_labels': train_labels,
       'test_data': test_data,
