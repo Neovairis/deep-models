@@ -120,7 +120,7 @@ def run_model(data, image_dim, label_count, depth):
     session.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
     train_data, train_labels = data['train_data'], data['train_labels']
-    batch_count = len(train_data) / batch_size
+    batch_count = int(len(train_data) / batch_size)
     batches_data = np.split(train_data[:batch_count * batch_size], batch_count)
     batches_labels = np.split(train_labels[:batch_count * batch_size], batch_count)
     print("Batch per epoch: ", batch_count)
