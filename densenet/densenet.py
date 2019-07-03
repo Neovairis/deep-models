@@ -24,23 +24,23 @@ def load_data(files, data_dir, label_count):
     data_n, labels_n = load_data_one(data_dir + '/' + f)
     data = np.append(data, data_n, axis=0)
     labels = np.append(labels, labels_n, axis=0)
-  labels = np.array([[float(i == label) for i in range(label_count)] for label in labels ])
+  labels = np.array([[float(i == label) for i in range(label_count)] for label in labels])
   return data, labels
 
 def run_in_batch_avg(session, tensors, batch_placeholders, feed_dict={}, batch_size=200):                              
-  res = [ 0 ] * len(tensors)                                                                                           
-  batch_tensors = [ (placeholder, feed_dict[ placeholder ]) for placeholder in batch_placeholders ]                    
+  res = [0] * len(tensors)
+  batch_tensors = [(placeholder, feed_dict[placeholder]) for placeholder in batch_placeholders]
   total_size = len(batch_tensors[0][1])                                                                                
-  batch_count = (total_size + batch_size - 1) / batch_size                                                             
+  batch_count = int((total_size + batch_size - 1) / batch_size)
   for batch_idx in range(batch_count):
     current_batch_size = None                                                                                          
     for (placeholder, tensor) in batch_tensors:                                                                        
-      batch_tensor = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]                                         
+      batch_tensor = tensor[batch_idx*batch_size: (batch_idx+1)*batch_size]
       current_batch_size = len(batch_tensor)                                                                           
-      feed_dict[placeholder] = tensor[ batch_idx*batch_size : (batch_idx+1)*batch_size ]                               
+      feed_dict[placeholder] = tensor[batch_idx*batch_size: (batch_idx+1)*batch_size]
     tmp = session.run(tensors, feed_dict=feed_dict)                                                                    
-    res = [ r + t * current_batch_size for (r, t) in zip(res, tmp) ]                                                   
-  return [ r / float(total_size) for r in res ]
+    res = [r + t * current_batch_size for (r, t) in zip(res, tmp)]
+  return [r / float(total_size) for r in res]
 
 def weight_variable(shape):
   initial = tf.truncated_normal(shape, stddev=0.01)
@@ -52,9 +52,9 @@ def bias_variable(shape):
 
 def conv2d(input, in_features, out_features, kernel_size, with_bias=False):
   W = weight_variable([kernel_size, kernel_size, in_features, out_features])
-  conv = tf.nn.conv2d(input, W, [ 1, 1, 1, 1 ], padding='SAME')
+  conv = tf.nn.conv2d(input, W, [1, 1, 1, 1], padding='SAME')
   if with_bias:
-    return conv + bias_variable([ out_features ])
+    return conv + bias_variable([out_features])
   return conv
 
 def batch_activ_conv(current, in_features, out_features, kernel_size, is_training, keep_prob):
@@ -87,7 +87,6 @@ def run_model(data, image_dim, label_count, depth):
     keep_prob = tf.placeholder(tf.float32)
     is_training = tf.placeholder("bool", shape=[])
 
-
     current = tf.reshape(xs, [ -1, 32, 32, 3 ])
     current = conv2d(current, 3, 16, 3)
 
@@ -103,10 +102,10 @@ def run_model(data, image_dim, label_count, depth):
     current = tf.nn.relu(current)
     current = avg_pool(current, 8)
     final_dim = features
-    current = tf.reshape(current, [ -1, final_dim ])
-    Wfc = weight_variable([ final_dim, label_count ])
-    bfc = bias_variable([ label_count ])
-    ys_ = tf.nn.softmax( tf.matmul(current, Wfc) + bfc )
+    current = tf.reshape(current, [-1, final_dim])
+    Wfc = weight_variable([final_dim, label_count])
+    bfc = bias_variable([label_count])
+    ys_ = tf.nn.softmax(tf.matmul(current, Wfc) + bfc)
 
     cross_entropy = -tf.reduce_mean(ys * tf.log(ys_ + 1e-12))
     l2 = tf.add_n([tf.nn.l2_loss(var) for var in tf.trainable_variables()])
@@ -129,29 +128,29 @@ def run_model(data, image_dim, label_count, depth):
       if epoch == 225: learning_rate = 0.001
       for batch_idx in range(batch_count):
         xs_, ys_ = batches_data[batch_idx], batches_labels[batch_idx]
-        batch_res = session.run([ train_step, cross_entropy, accuracy ],
+        batch_res = session.run([train_step, cross_entropy, accuracy],
           feed_dict = { xs: xs_, ys: ys_, lr: learning_rate, is_training: True, keep_prob: 0.8 })
         if batch_idx % 100 == 0: print(epoch, batch_idx, batch_res[1:])
 
       save_path = saver.save(session, 'densenet_%d.ckpt' % epoch)
-      test_results = run_in_batch_avg(session, [ cross_entropy, accuracy ], [ xs, ys ],
-          feed_dict = { xs: data['test_data'], ys: data['test_labels'], is_training: False, keep_prob: 1. })
+      test_results = run_in_batch_avg(session, [cross_entropy, accuracy], [xs, ys],
+          feed_dict = {xs: data['test_data'], ys: data['test_labels'], is_training: False, keep_prob: 1.})
       print(epoch, batch_res[1:], test_results)
 
 def run():
-  data_dir = '../Q2_SVM'
+  data_dir = '../cifar-10-batches-py'
   image_size = 32
   image_dim = image_size * image_size * 3
   meta = unpickle(data_dir + '/batches.meta')
-  print(meta)
+  # print(meta)
   label_names = meta['label_names']
   label_count = len(label_names)
 
-  train_files = [ 'data_batch_%d' % d for d in range(1, 6) ]
+  train_files = ['data_batch_%d' % d for d in range(1, 6)]
   train_data, train_labels = load_data(train_files, data_dir, label_count)
   pi = np.random.permutation(len(train_data))
   train_data, train_labels = train_data[pi], train_labels[pi]
-  test_data, test_labels = load_data([ 'test_batch' ], data_dir, label_count)
+  test_data, test_labels = load_data(['test_batch'], data_dir, label_count)
   print("Train:", np.shape(train_data), np.shape(train_labels))
   print("Test:", np.shape(test_data), np.shape(test_labels))
   data = { 'train_data': train_data,
