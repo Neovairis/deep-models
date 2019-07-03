@@ -74,7 +74,7 @@ def block(input, layers, in_features, growth, is_training, keep_prob):
   return current, features
 
 def avg_pool(input, s):
-  return tf.nn.avg_pool(input, [ 1, s, s, 1 ], [1, s, s, 1 ], 'VALID')
+  return tf.nn.avg_pool(input, [1, s, s, 1], [1, s, s, 1], 'VALID')
 
 def run_model(data, image_dim, label_count, depth):
   weight_decay = 1e-4
@@ -87,7 +87,7 @@ def run_model(data, image_dim, label_count, depth):
     keep_prob = tf.placeholder(tf.float32)
     is_training = tf.placeholder("bool", shape=[])
 
-    current = tf.reshape(xs, [ -1, 32, 32, 3 ])
+    current = tf.reshape(xs, [-1, 32, 32, 3])
     current = conv2d(current, 3, 16, 3)
 
     current, features = block(current, layers, 16, 12, is_training, keep_prob)
