@@ -140,20 +140,20 @@ def run_model(data, image_dim, label_count, depth):
 def run():
   data_dir = '../cifar-10-batches-py'
   image_size = 32
-  image_dim = image_size * image_size * 3
-  meta = unpickle(data_dir + '/batches.meta')
-  # print(meta)
-  label_names = meta['label_names']
+  image_dim = image_size * image_size * 3   #图像维度
+  meta = unpickle(data_dir + '/batches.meta') #解压文件
+  print('meta', meta)
+  label_names = meta['label_names']#meta文件是以字典形式存储
   label_count = len(label_names)
 
   train_files = ['data_batch_%d' % d for d in range(1, 6)]
-  train_data, train_labels = load_data(train_files, data_dir, label_count)
+  train_data, train_labels = load_data(train_files, data_dir, label_count)#加载训练数据，
   pi = np.random.permutation(len(train_data))
   train_data, train_labels = train_data[pi], train_labels[pi]
   test_data, test_labels = load_data(['test_batch'], data_dir, label_count)
   print("Train:", np.shape(train_data), np.shape(train_labels))
   print("Test:", np.shape(test_data), np.shape(test_labels))
-  data = { 'train_data': train_data,
+  data = {'train_data': train_data,
       'train_labels': train_labels,
       'test_data': test_data,
       'test_labels': test_labels }
